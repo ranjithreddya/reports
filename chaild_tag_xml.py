@@ -235,3 +235,19 @@ for key, value in data.items():
 
 
 print(output)
+
+
+
+def serialize(obj, visited=None):
+    if visited is None:
+        visited = set()
+    if id(obj) in visited:
+        return '<circular reference>'
+    visited.add(id(obj))
+    if isinstance(obj, OrderedSet):
+        return list(obj)
+    elif isinstance(obj, dict):
+        return {key: serialize(value, visited) for key, value in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [serialize(item, visited) for item in obj]
+    return obj
