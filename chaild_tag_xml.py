@@ -251,3 +251,33 @@ def serialize(obj, visited=None):
     elif isinstance(obj, (list, tuple)):
         return [serialize(item, visited) for item in obj]
     return obj
+
+def serialize(obj):
+    if isinstance(obj, OrderedSet):
+        return list(obj)
+    elif isinstance(obj, dict):
+        return {key: serialize(value) for key, value in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [serialize(item) for item in obj]
+    elif isinstance(obj, ET.Element):
+        return element_to_dict(obj)
+    return obj
+
+def element_to_dict(element):
+    data = {'tagname': element.tag}
+    if element.attrib:
+        data['attributes'] = dict(element.attrib)
+    if element.text and element.text.strip():
+        data['text'] = element.text.strip()
+    if len(element) > 0:
+        data['children'] = [element_to_dict(child) for child in element]
+    return data
+
+src_json = element_to_dict(src_root)
+target_json = element_to_dict(target_root)
+
+diff = DeepDiff(src_json, target_json)
+
+data_str = json.dumps(diff, default=serialize)
+print(data_str)
+
