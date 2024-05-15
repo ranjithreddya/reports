@@ -167,22 +167,25 @@ try:
         start_time = datetime.now() - timedelta(hours=(i+1)*interval_hours)
         end_time = datetime.now() - timedelta(hours=i*interval_hours)
 
-        # Fetch files created within the current interval, ordered by creation date in descending order
-        files_within_interval = SFComparePath.objects.filter(created_date__gte=start_time, created_date__lt=end_time).order_by('-created_date')
+        # Fetch files created within the current interval
+        files_within_interval = SFComparePath.objects.filter(created_date__gte=start_time, created_date__lt=end_time)
         
+        # Sort files within the interval by creation date in descending order
+        sorted_files = sorted(files_within_interval, key=lambda x: (x.created_date, x.created_date.second), reverse=True)
+
         # Find the latest creation date for each JSON file within the current interval
         latest_dates = files_within_interval.values('JSON').annotate(latest_date=Max('created_date'))
         latest_date_dict = {item['JSON']: item['latest_date'] for item in latest_dates}
 
         # Categorize files within the current interval
-        for file in files_within_interval:
+        for file in sorted_files:
             latest_date = latest_date_dict.get(file.JSON)
             status = "latest" if latest_date and file.created_date == latest_date else "old"
             
             res.append({
                 "req_id": file.req_id,
                 "file": file.JSON,
-                "created_date": file.created_date.strftime("%Y-%m-%d %H:%M"),  # Format the date if needed
+                "created_date": file.created_date.strftime("%Y-%m-%d %H:%M:%S"),  # Include seconds in the format
                 "status": status
             })
 
