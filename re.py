@@ -110,3 +110,40 @@ else:
 # 	Except : AAPA
 # 	test-result : fail}
 
+from datetime import datetime, timedelta
+from django.db.models import Max
+from rest_framework.response import Response
+
+# Retrieve jurisdiction from the request data
+jurisdiction = request.data.get('jurisdiction')
+
+try:
+    res = []
+    # Calculate the datetime for 48 hours ago
+    last_hour_date_time = datetime.now() - timedelta(hours=48)
+
+    # Query to get the latest creation date for each JSON within the last 48 hours
+    latest_dates = SFComparePath.objects.filter(created_date__gte=last_hour_date_time) \
+        .values('JSON') \
+        .annotate(latest_date=Max('created_date'))
+
+    # Fetch all records created within the last 48 hours
+    all_records = SFComparePath.objects.filter(created_date__gte=last_hour_date_time) \
+        .order_by('-created_date')
+
+    # Create a dictionary to map each JSON to its latest creation date
+    latest_date_dict = {item['JSON']: item['latest_date'] for item in latest_dates}
+
+    # Iterate over all records to determine their status
+    for record in all_records:
+        latest_date = latest_date_dict.get(record.JSON)
+        latest_str = "latest" if record.created_date == latest_date else "old"
+        res.append({"req_id": record.req_id, "file": record.JSON, "status": latest_str})
+
+    print(res)
+    return Response({"detail": res}, status=200)
+
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+    return Response({"detail": "An error occurred"}, status=500)
