@@ -156,13 +156,18 @@ from django.db.models import Max
 
 try:
     res = []
+    interval_hours = 24
+    total_hours = 100
 
-    # Start from the most recent 24-hour interval and go back to the last 48 hours
-    for i in range(2):
-        start_time = datetime.now() - timedelta(hours=(i+1)*24)
-        end_time = datetime.now() - timedelta(hours=i*24)
+    # Calculate the number of intervals based on total hours and interval length
+    num_intervals = total_hours // interval_hours
 
-        # Fetch files created within the current 24-hour interval
+    # Start from the most recent interval and go back
+    for i in range(num_intervals):
+        start_time = datetime.now() - timedelta(hours=(i+1)*interval_hours)
+        end_time = datetime.now() - timedelta(hours=i*interval_hours)
+
+        # Fetch files created within the current interval
         files_within_interval = SFComparePath.objects.filter(created_date__gte=start_time, created_date__lt=end_time)
         
         # Find the latest creation date for each JSON file within the current interval
@@ -188,4 +193,5 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     return JsonResponse({"detail": str(e)}, status=500)
+
 
