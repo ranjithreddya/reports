@@ -147,3 +147,52 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     return Response({"detail": "An error occurred"}, status=500)
+
+
+###############################################################
+from datetime import datetime, timedelta
+from django.db.models import Max
+from rest_framework.response import Response
+
+jurisdiction = request.data['jurisdiction']
+try:
+    res = []
+    last_48_hours = datetime.now() - timedelta(hours=48)
+
+    # Fetch all records within the last 48 hours
+    all_records = SFComparePath.objects.filter(created_date__gte=last_48_hours).order_by('-created_date')
+
+    # Group entries by JSON file and by 24-hour periods
+    grouped_records = {}
+    for record in all_records:
+        json_file = record.JSON
+        date_str = record.created_date.strftime('%Y-%m-%d')
+
+        if json_file not in grouped_records:
+            grouped_records[json_file] = {}
+
+        if date_str not in grouped_records[json_file]:
+            grouped_records[json_file][date_str] = []
+
+        grouped_records[json_file][date_str].append(record)
+
+    # Determine latest and old entries
+    for json_file, date_groups in grouped_records.items():
+        for date_str, records in date_groups.items():
+            latest_record = max(records, key=lambda r: r.created_date)
+            for record in records:
+                status = "latest" if record == latest_record else "old"
+                res.append({
+                    "req_id": record.req_id,
+                    "file": record.JSON,
+                    "created_date": record.created_date.strftime('%Y-%m-%d %H:%M'),
+                    "status": status
+                })
+
+    print(res)
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+
+return Response({"detail": res}, status=200)
+
