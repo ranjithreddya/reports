@@ -155,45 +155,30 @@ from django.db.models import Max
 from rest_framework.response import Response
 
 jurisdiction = request.data['jurisdiction']
+
 try:
     res = []
-    last_48_hours = datetime.now() - timedelta(hours=48)
-
-    # Fetch all records within the last 48 hours
-    all_records = SFComparePath.objects.filter(created_date__gte=last_48_hours).order_by('JSON', 'created_date')
-
-    # Group entries by JSON file and by 24-hour periods
-    grouped_records = {}
+    last_hour_date_time = datetime.now() - timedelta(hours=48)
+    
+    # Get the latest dates for each JSON
+    latest_dates = SFComparePath.objects.filter(created_date__gte=last_hour_date_time).values('JSON').annotate(latest_date=Max('created_date'))
+    
+    # Create a dictionary to map JSON to its latest created_date
+    latest_date_dict = {item['JSON']: item['latest_date'] for item in latest_dates}
+    
+    # Get all records sorted by created_date
+    all_records = SFComparePath.objects.filter(created_date__gte=last_hour_date_time).order_by('-created_date')
+    
     for record in all_records:
-        json_file = record.JSON
-        date_str = record.created_date.strftime('%Y-%m-%d')
-
-        if json_file not in grouped_records:
-            grouped_records[json_file] = {}
-
-        if date_str not in grouped_records[json_file]:
-            grouped_records[json_file][date_str] = []
-
-        grouped_records[json_file][date_str].append(record)
-
-    # Determine latest and old entries
-    for json_file, date_groups in grouped_records.items():
-        for date_str, records in date_groups.items():
-            latest_record = max(records, key=lambda r: r.created_date)
-            for record in records:
-                status = "latest" if record == latest_record else "old"
-                res.append({
-                    "req_id": record.req_id,
-                    "file": record.JSON,
-                    "created_date": record.created_date.strftime('%Y-%m-%d %H:%M'),
-                    "status": status
-                })
-
+        latest_date = latest_date_dict.get(record.JSON)
+        latest_str = "latest" if record.created_date == latest_date else "old"
+        res.append({"req_id": record.req_id, "file": record.JSON, "created_date": record.created_date, "status": latest_str})
+    
     print(res)
 except Exception as e:
     import traceback
     traceback.print_exc()
+    return Response({"detail": str(e)}, status=500)
 
 return Response({"detail": res}, status=200)
-
 
