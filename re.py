@@ -154,25 +154,29 @@ from datetime import datetime, timedelta
 from django.db.models import Max
 from rest_framework.response import Response
 
-jurisdiction = request.data.get('jurisdiction')
-
 try:
     res = []
-    last_hour_date_time = datetime.now() - timedelta(hours=48)
+    now = datetime.now()
+    last_48_hours_datetime = now - timedelta(hours=48)
+    last_24_hours_datetime = now - timedelta(hours=24)
 
     # Fetch the latest created_date for each JSON entry within the last 48 hours
-    latest_dates = SFComparePath.objects.filter(created_date__gte=last_hour_date_time).values('JSON').annotate(latest_date=Max('created_date'))
+    latest_dates = SFComparePath.objects.filter(created_date__gte=last_48_hours_datetime).values('JSON').annotate(latest_date=Max('created_date'))
 
     # Create a dictionary for quick lookup of the latest created_date for each JSON entry
     latest_date_dict = {item['JSON']: item['latest_date'] for item in latest_dates}
 
     # Fetch all entries within the last 48 hours
-    all_entries = SFComparePath.objects.filter(created_date__gte=last_hour_date_time).order_by('-created_date')
+    all_entries = SFComparePath.objects.filter(created_date__gte=last_48_hours_datetime).order_by('JSON', '-created_date')
 
-    # Iterate through all entries and compare their creation dates with the latest dates
+    # Process entries within the last 24 hours
     for entry in all_entries:
         latest_date = latest_date_dict.get(entry.JSON)
         status = "latest" if entry.created_date == latest_date else "old"
+        if entry.created_date >= last_24_hours_datetime:
+            status = "latest"
+        else:
+            status = "old"
         res.append({
             "JSON": entry.JSON,
             "created_date": entry.created_date.strftime("%Y-%m-%d %H:%M"),
@@ -185,5 +189,4 @@ except Exception as e:
     traceback.print_exc()
 
 return Response({"detail": res}, status=200)
-
 
