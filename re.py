@@ -151,42 +151,41 @@ except Exception as e:
 
 ###############################################################
 from datetime import datetime, timedelta
+from django.http import JsonResponse
 from django.db.models import Max
-from rest_framework.response import Response
 
 try:
     res = []
-    now = datetime.now()
-    last_48_hours_datetime = now - timedelta(hours=48)
-    last_24_hours_datetime = now - timedelta(hours=24)
 
-    # Fetch the latest created_date for each JSON entry within the last 48 hours
-    latest_dates = SFComparePath.objects.filter(created_date__gte=last_48_hours_datetime).values('JSON').annotate(latest_date=Max('created_date'))
+    # Start from the most recent 24-hour interval and go back to the last 48 hours
+    for i in range(2):
+        start_time = datetime.now() - timedelta(hours=(i+1)*24)
+        end_time = datetime.now() - timedelta(hours=i*24)
 
-    # Create a dictionary for quick lookup of the latest created_date for each JSON entry
-    latest_date_dict = {item['JSON']: item['latest_date'] for item in latest_dates}
+        # Fetch files created within the current 24-hour interval
+        files_within_interval = SFComparePath.objects.filter(created_date__gte=start_time, created_date__lt=end_time)
+        
+        # Find the latest creation date for each JSON file within the current interval
+        latest_dates = files_within_interval.values('JSON').annotate(latest_date=Max('created_date'))
+        latest_date_dict = {item['JSON']: item['latest_date'] for item in latest_dates}
 
-    # Fetch all entries within the last 48 hours
-    all_entries = SFComparePath.objects.filter(created_date__gte=last_48_hours_datetime).order_by('JSON', '-created_date')
-
-    # Process entries within the last 24 hours
-    for entry in all_entries:
-        latest_date = latest_date_dict.get(entry.JSON)
-        status = "latest" if entry.created_date == latest_date else "old"
-        if entry.created_date >= last_24_hours_datetime:
-            status = "latest"
-        else:
-            status = "old"
-        res.append({
-            "JSON": entry.JSON,
-            "created_date": entry.created_date.strftime("%Y-%m-%d %H:%M"),
-            "status": status
-        })
+        # Categorize files within the current interval
+        for file in files_within_interval:
+            latest_date = latest_date_dict.get(file.JSON)
+            status = "latest" if latest_date and file.created_date == latest_date else "old"
+            
+            res.append({
+                "req_id": file.req_id,
+                "file": file.JSON,
+                "created_date": file.created_date.strftime("%Y-%m-%d %H:%M"),  # Format the date if needed
+                "status": status
+            })
 
     print(res)
+    return JsonResponse({"detail": "response"}, status=200)
+
 except Exception as e:
     import traceback
     traceback.print_exc()
-
-return Response({"detail": res}, status=200)
+    return JsonResponse({"detail": str(e)}, status=500)
 
