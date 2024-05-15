@@ -160,7 +160,7 @@ try:
     last_48_hours = datetime.now() - timedelta(hours=48)
 
     # Fetch all records within the last 48 hours
-    all_records = SFComparePath.objects.filter(created_date__gte=last_48_hours).order_by('-created_date')
+    all_records = SFComparePath.objects.filter(created_date__gte=last_48_hours).order_by('JSON', 'created_date')
 
     # Group entries by JSON file and by 24-hour periods
     grouped_records = {}
@@ -195,4 +195,5 @@ except Exception as e:
     traceback.print_exc()
 
 return Response({"detail": res}, status=200)
+
 
