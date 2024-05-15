@@ -167,8 +167,8 @@ try:
         start_time = datetime.now() - timedelta(hours=(i+1)*interval_hours)
         end_time = datetime.now() - timedelta(hours=i*interval_hours)
 
-        # Fetch files created within the current interval
-        files_within_interval = SFComparePath.objects.filter(created_date__gte=start_time, created_date__lt=end_time)
+        # Fetch files created within the current interval, ordered by creation date in descending order
+        files_within_interval = SFComparePath.objects.filter(created_date__gte=start_time, created_date__lt=end_time).order_by('-created_date')
         
         # Find the latest creation date for each JSON file within the current interval
         latest_dates = files_within_interval.values('JSON').annotate(latest_date=Max('created_date'))
@@ -193,5 +193,3 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     return JsonResponse({"detail": str(e)}, status=500)
-
-
