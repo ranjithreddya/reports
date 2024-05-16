@@ -379,20 +379,25 @@ print(output_str)
 ##################################################################################################################################################################
 
 
-# import pandas as pd
+import pandas as pd
 
-# # Read data from CSV file
-# df = pd.read_csv('/Users/ranjithrreddyabbidi/ranjith/test.csv')
+# Read data from CSV file
+df = pd.read_csv('/Users/ranjithrreddyabbidi/ranjith/test.csv')
 
-# # Print column names to verify them
-# print(df.columns)
+# Print column names to verify them
+print(df.columns)
 
-# # Assuming the column names are correct after verification
-# distinct_df = df.drop_duplicates(subset=['Report Submitting entity ID', 'Entity responsible for reporting', 'Counterparty 1 (Reporting counterparty)'])
+# Assuming the column names are correct after verification
+distinct_df = df.drop_duplicates(subset=['Entity responsible for reporting', 'Counterparty 1 (Reporting counterparty)'])
 
-# # Convert the DataFrame to a list of dictionaries
-# distinct_data = distinct_df.to_dict(orient='records')
+# Select only the desired columns
+columns_to_include = ['Entity responsible for reporting', 'Counterparty 1 (Reporting counterparty)']
+subset_df = distinct_df[columns_to_include]
 
+# Convert the DataFrame to a list of dictionaries
+distinct_data = subset_df.to_dict(orient='records')
+
+print(distinct_data)
 ##############################################################################################################################################################
 
 # import xml.etree.ElementTree as ET
