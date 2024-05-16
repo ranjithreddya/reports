@@ -393,6 +393,105 @@ print(output_str)
 # # Convert the DataFrame to a list of dictionaries
 # distinct_data = distinct_df.to_dict(orient='records')
 
+##############################################################################################################################################################
+
+# import xml.etree.ElementTree as ET
+
+# # Read XML from file
+# with open('/Users/ranjithrreddyabbidi/ranjith/final_input_xml.py', 'r') as file:
+#     xml_data = file.read()
+
+# # Namespace dictionary
+# namespaces = {
+#     'head003': 'urn:iso:std:iso:20022:tech:xsd:head.003.001.01',
+#     'head001': 'urn:iso:std:iso:20022:tech:xsd:head.001.001.02',
+#     'head091': 'urn:iso:std:iso:20022:tech:xsd:head.091.001.02'
+# }
+
+# # Parse XML
+# root = ET.fromstring(xml_data)
+
+# # Create an output element to store the result
+# output = ET.Element('TxDtls')
+
+# # Iterate through TxDtls and filter based on LEI
+# for tx_dtls in root.findall('.//head091:TxDtls', namespaces):
+#     lei = tx_dtls.find('.//head091:RptgCtrPty/head091:LEI', namespaces)
+#     if lei is not None and lei.text == '529900FDQEQ91XN3W228':
+#         for rcncltn_rpt in tx_dtls.findall('head091:RcncltnRpt', namespaces):
+#             output.append(rcncltn_rpt)
+
+# # Convert the output to a string
+# output_str = ET.tostring(output, encoding='unicode')
+
+# # Remove namespace prefixes from the result
+# output_str = output_str.replace('ns0:', '')
+# print(output_str)
+
+
+import xml.etree.ElementTree as ET
+import json
+
+# Sample input JSON data
+input_data = '''
+[
+    {
+        "RptgCtrPty": "529900FDQEQ91XN3W228",
+        "OthrCtrPty": "549300681JNVQWG2CM14"
+    },
+    {
+        "RptgCtrPty": "1111111111111111",
+        "OthrCtrPty": "222222222222222222"
+    }
+]
+'''
+
+# Read XML from file
+with open('/Users/ranjithrreddyabbidi/ranjith/final_input_xml.py', 'r') as file:
+    xml_data = file.read()
+
+# Parse the input JSON data
+criteria_list = json.loads(input_data)
+
+# Namespace dictionary
+namespaces = {
+    'head003': 'urn:iso:std:iso:20022:tech:xsd:head.003.001.01',
+    'head001': 'urn:iso:std:iso:20022:tech:xsd:head.001.001.02',
+    'head091': 'urn:iso:std:iso:20022:tech:xsd:head.091.001.02'
+}
+
+# Parse XML
+root = ET.fromstring(xml_data)
+
+# Create an output element to store the result
+output = ET.Element('TxDtls')
+
+# Iterate through each set of criteria
+for criteria in criteria_list:
+    rptg_ctr_pty_lei = criteria.get("RptgCtrPty")
+    othr_ctr_pty_lei = criteria.get("OthrCtrPty")
+    
+    # Iterate through TxDtls and filter based on LEI criteria
+    for tx_dtls in root.findall('.//head091:TxDtls', namespaces):
+        rptg_lei = tx_dtls.find('.//head091:RptgCtrPty/head091:LEI', namespaces)
+        othr_lei = tx_dtls.find('.//head091:OthrCtrPty/head091:Lg1/head091:LEI', namespaces)
+        
+        if rptg_lei is not None and othr_lei is not None:
+            if rptg_lei.text == rptg_ctr_pty_lei and othr_lei.text == othr_ctr_pty_lei:
+                for rcncltn_rpt in tx_dtls.findall('head091:RcncltnRpt', namespaces):
+                    output.append(rcncltn_rpt)
+
+# Convert the output to a string
+output_str = ET.tostring(output, encoding='unicode')
+
+# Remove namespace prefixes from the result
+output_str = output_str.replace('ns0:', '')
+print(output_str)
+
+with open('/Users/ranjithrreddyabbidi/ranjith/final_output_xml.py', 'w') as file:
+    file.write(output_str)
+
+
 # # Print the distinct data
 # print(distinct_data)
 
