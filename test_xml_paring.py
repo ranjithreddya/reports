@@ -2,7 +2,7 @@
 import xml.etree.ElementTree as ET
 import json
 import os
-
+import xml.dom.minidom
 
 input_data = '''
 [
@@ -113,7 +113,23 @@ output_str = ET.tostring(output, encoding='unicode')
 
 output_str = output_str.replace('ns0:', '')
 
-print(output_str)
+# print(output_str)
 
-with open('/Users/ranjithrreddyabbidi/ranjith/final_output_xml_back.xml', 'w') as file:
-    file.write(output_str)
+# with open('/Users/ranjithrreddyabbidi/ranjith/final_output_xml_back.xml', 'w') as file:
+#     file.write(output_str)
+
+
+
+dom = xml.dom.minidom.parseString(output_str)
+pretty_xml_str = dom.toprettyxml(indent="    ")
+
+# Remove extra spaces around tags manually if needed
+pretty_xml_str = "\n".join([line for line in pretty_xml_str.split("\n") if line.strip()])
+
+# Write the pretty-printed XML to a file
+output_file_path = '/Users/ranjithrreddyabbidi/ranjith/final_output_xml_back.xml'
+with open(output_file_path, 'w') as file:
+    file.write(pretty_xml_str)
+print(f"Pretty-printed XML output written to {output_file_path}")
+
+
