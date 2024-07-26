@@ -175,3 +175,51 @@ for unqtxidr in root.findall('.//UnqTxIdr'):
 new_xml_data = ET.tostring(root, encoding='unicode')
 
 print(new_xml_data)
+
+
+
+import pandas as pd
+from deepdiff import DeepDiff
+import io
+
+# Define the CSV data as strings
+csv1 = """
+c1,xml,c3,c4
+NKranjithTC99999SEUREFIT51547XCOMNEGR93,<MtchgCrit><RptgCtrPty><LEI>549300681JNVQWG2CM14</LEI></RptgCtrPty></MtchgCrit> <LEI>529900FDQEQ91XN3W228</LEI> <LEI>529900FDQEQ91XN3W214</LEI>
+NKranjithTC99999SEUREFIT516115XCOMNEGR964,<MtchgCrit><RptgCtrPty><LEI>549300681JNVQWG2CM14</LEI></RptgCtrPty></MtchgCrit> <LEI>529900FDQEQ91XN3W214</LEI> <LEI>529900FDQEQ91XN3W228</LEI>
+NKranjithTC99999SEUREFIT516115XCOMNEGR961,<MtchgCrit><RptgCtrPty><LEI>549300681JNVQWG2CM15</LEI></RptgCtrPty></MtchgCrit> <LEI>529900FDQEQ91XN3W214</LEI> <LEI>529900FDQEQ91XN3W228</LEI>
+"""
+
+csv2 = """
+c1,xml,c3,c4
+NKranjithTC99999SEUREFIT51547XCOMNEGR93,<MtchgCrit><RptgCtrPty><LEI>549300681JNVQWG2CM14</LEI></RptgCtrPty></MtchgCrit> <LEI>529900FDQEQ91XN3W228</LEI> <LEI>529900FDQEQ91XN3W214</LEI>
+NKranjithTC99999SEUREFIT516115XCOMNEGR964,<MtchgCrit><RptgCtrPty><LEI>549300681JNVQWG2CM14</LEI></RptgCtrPty></MtchgCrit> <LEI>529900FDQEQ91XN3W214</LEI> <LEI>529900FDQEQ91XN3W228</LEI>
+NKranjithTC99999SEUREFIT516115XCOMNEGR962,<MtchgCrit><RptgCtrPty><LEI>549300681JNVQWG2CM16</LEI></RptgCtrPty></MtchgCrit> <LEI>529900FDQEQ91XN3W214</LEI> <LEI>529900FDQEQ91XN3W228</LEI>
+"""
+
+# Read CSV data into DataFrames using io.StringIO
+df1 = pd.read_csv(io.StringIO(csv1))
+df2 = pd.read_csv(io.StringIO(csv2))
+
+# Merge DataFrames on 'c1', 'c3', 'c4' using an outer join
+merged_df = pd.merge(df1, df2, on=['c1', 'c3', 'c4'], how='outer', suffixes=('_csv1', '_csv2'))
+
+# Construct the output dictionary
+output = {}
+for index, row in merged_df.iterrows():
+    key = row['c1']
+    xml_csv1 = row['xml_csv1'] if 'xml_csv1' in row and pd.notnull(row['xml_csv1']) else ''
+    xml_csv2 = row['xml_csv2'] if 'xml_csv2' in row and pd.notnull(row['xml_csv2']) else ''
+    output[key] = {
+        "xml1": xml_csv1,
+        "xml2": xml_csv2
+    }
+
+# Print the output
+print(output)
+# Loop through the dictionary and print the details
+for key, value in xml_data.items():
+    print(f"Key: {key}")
+    print(f"XML from csv1: {value['xml1']}")
+    print(f"XML from csv2: {value['xml2']}")
+    print("-" * 40)
