@@ -223,3 +223,34 @@ for key, value in xml_data.items():
     print(f"XML from csv1: {value['xml1']}")
     print(f"XML from csv2: {value['xml2']}")
     print("-" * 40)
+
+###########################################################################
+
+import pandas as pd
+
+# Snowflake table data
+data = {
+    'sub_id': ['s1', 's2', 's3', 's4'],
+    'date': ['2024-05-26', '2024-05-27', '2024-05-26', '2024-05-27']
+}
+
+# Load into DataFrame
+snowflake_df = pd.DataFrame(data)
+
+# Input array
+input_array = [
+    {"sid": "s1", "csv_path": "test1.csv"},
+    {"sid": "s2", "csv_path": "test2.csv"},
+    {"sid": "s3", "csv_path": "test3.csv"},
+    {"sid": "s4", "csv_path": "test4.csv"}
+]
+
+# Convert input array to DataFrame
+input_df = pd.DataFrame(input_array)
+
+# Merge data on 'sub_id'
+merged_df = pd.merge(snowflake_df, input_df, left_on='sub_id', right_on='sid')
+
+# Display the result
+for _, row in merged_df.iterrows():
+    print(f"Date: {row['date']}, CSV Path: {row['csv_path']}")
