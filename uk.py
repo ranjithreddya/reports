@@ -309,3 +309,6 @@ for column in df.columns:
         # Update only non-NaN and non-empty values
         df[column] = df[column].apply(lambda x: new_value if pd.notna(x) and x != '' else x)
 
+import os
+
+latest_dir = max((os.path.join('/path/to/your/directory', d) for d in os.listdir('/path/to/your/directory') if os.path.isdir(os.path.join('/path/to/your/directory', d))), key=os.path.getmtime, default=None)
