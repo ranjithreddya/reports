@@ -254,3 +254,30 @@ merged_df = pd.merge(snowflake_df, input_df, left_on='sub_id', right_on='sid')
 # Display the result
 for _, row in merged_df.iterrows():
     print(f"Date: {row['date']}, CSV Path: {row['csv_path']}")
+
+
+import pandas as pd
+from io import StringIO
+
+# Sample CSV data
+csv_data = """uti, test1_abc, test4_dge, test3_dnn
+NK040824243049TC99999SEUREFIT51547XCOMNEGR93, test1_value, test2_contains, test3_dnn
+NK040824243049TC99999SEUREFIT51547XCOMNEGR93, test1_contains, , test3_dnn
+NK040824243049TC99999SEUREFIT51547XCOMNEGR93, test1_value, test2_value, test3_contains"""
+
+# Load the CSV data into a DataFrame
+df = pd.read_csv(StringIO(csv_data))
+
+# Input list of columns to apply the replacement
+input_columns = ['test']
+replacement_value = 'updated'
+
+# Apply the conditions to DataFrame columns specified in input_columns
+for column in df.columns:
+    # Check if the column name should be processed
+    for input_column in input_columns:
+        if input_column in column:
+            df.loc[df[column].str.contains(input_column, na=False), column] = replacement_value
+
+# Print the modified DataFrame
+print(df.to_csv(index=False))
