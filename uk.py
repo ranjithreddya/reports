@@ -281,3 +281,31 @@ for column in df.columns:
 
 # Print the modified DataFrame
 print(df.to_csv(index=False))
+
+
+
+
+import pandas as pd
+from io import StringIO
+
+# Sample CSV data
+csv_data = """uti,test1_abc,test4_dge,test3_dnn
+NK040824243049TC99999SEUREFIT51547XCOMNEGR93,1_value,2_contains,3_dnn
+NK040824243049TC99999SEUREFIT51547XCOMNEGR93,1_contains,,3_dnn
+NK040824243049TC99999SEUREFIT51547XCOMNEGR93,1_value,2_value, 3_contains"""
+
+# Load the CSV data into a DataFrame
+df = pd.read_csv(StringIO(csv_data))
+
+# The substring to search for in column names
+substring = 'test'
+
+# Define the new value to use for non-NaN and non-empty values
+new_value = 'updated'
+
+# Iterate over columns that contain the substring
+for column in df.columns:
+    if substring in column:
+        # Update only non-NaN and non-empty values
+        df[column] = df[column].apply(lambda x: new_value if pd.notna(x) and x != '' else x)
+
