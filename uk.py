@@ -312,3 +312,8 @@ import os
 
 latest_dir = max((d for d in os.listdir('/path/to/your/directory') if os.path.isdir(os.path.join('/path/to/your/directory', d))), key=lambda d: os.path.getmtime(os.path.join('/path/to/your/directory', d)), default=None)
 
+
+
+
+if len(a.split('_')) > 3 and a.split('_')[-1].startswith('T'): # to check
+    pass
