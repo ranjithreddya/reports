@@ -219,6 +219,10 @@ try:
 >>> print(output)
 <val><desc><test>
 
+
+output = ''.join(f"<{match}>" for match in re.findall(r"\['(.*?)'\]", a)[1:])
+
+
 ######################################################################################################################
 
 except Exception as e:
