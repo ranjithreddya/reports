@@ -192,6 +192,35 @@ try:
     print(res)
     return JsonResponse({"detail": "response"}, status=200)
 
+
+
+##############################################################################################################
+
+>>> a = "Root['rcts']['val'][0]['desc'][0]['test']"
+>>> matches = re.findall(r"\['([^']+)'\]", a)
+>>> output = ''.join(f"<{match}>" for match in matches[1:])
+>>> print(output)
+<val><desc><test>
+>>> 
+>>> 
+>>> 
+>>> 
+>>> import re
+>>> 
+>>> a = "Root['rcts']['val'][0]['desc']"
+>>> 
+>>> # Extract and format everything after 'rcts' in one line
+>>> output = ''.join(f"<{match}>" for match in re.findall(r"\['([^']+)'\]", a)[1:])
+>>> print(output)
+<val><desc>
+>>> 
+>>> a = "Root['rcts']['val'][0]['desc'][0]['test']"
+>>> output = ''.join(f"<{match}>" for match in re.findall(r"\['([^']+)'\]", a)[1:])
+>>> print(output)
+<val><desc><test>
+
+######################################################################################################################
+
 except Exception as e:
     import traceback
     traceback.print_exc()
