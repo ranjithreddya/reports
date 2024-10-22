@@ -359,3 +359,69 @@ class TestsView(View):
             return JsonResponse({'error': f'Error retrieving tests: {str(e)}'}, status=500)
 
 
+#####
+import requests
+
+class ALMAPIClient:
+    def __init__(self, client_id, client_secret, server_address):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.session = requests.Session()
+        self.base_url = f"https://{server_address}/qcbin"  # Construct the base URL
+
+    def authenticate(self):
+        """Authenticate to the ALM API using the login API."""
+        login_url = f"{self.base_url}/authentication-point/authenticate"
+        
+        # Payload for authentication
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret
+        }
+
+        response = self.session.post(login_url, json=payload)
+
+        # Check if the authentication was successful
+        if response.status_code != 200:
+            raise Exception(f"Authentication failed: {response.status_code} - {response.text}")
+
+    def get_tests(self, domain, project):
+        """Retrieve tests from the ALM API."""
+        tests_endpoint = f"{self.base_url}/rest/domains/{domain}/projects/{project}/tests"
+        return self.session.get(tests_endpoint)
+
+def main():
+    # Input your credentials and server details
+    client_id = input("Enter your Client ID: ")
+    client_secret = input("Enter your Client Secret: ")
+    server_address = input("Enter the server address (without https://): ")
+    domain = input("Enter the domain: ")
+    project = input("Enter the project: ")
+
+    # Initialize the ALM API client
+    alm_client = ALMAPIClient(client_id, client_secret, server_address)
+
+    # Authenticate
+    try:
+        alm_client.authenticate()
+        print("Authentication successful.")
+    except Exception as e:
+        print(f"Error during authentication: {str(e)}")
+        return
+
+    # Call the tests endpoint
+    try:
+        response = alm_client.get_tests(domain, project)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            print("Tests retrieved successfully:")
+            print(response.json())  # Print the retrieved tests
+        else:
+            print(f"Error retrieving tests: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"Error retrieving tests: {str(e)}")
+
+if __name__ == "__main__":
+    main()
+
