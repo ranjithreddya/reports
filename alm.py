@@ -220,3 +220,33 @@ class MyView(View):
         return JsonResponse({'message': 'Success!'}, status=200)
 
 
+
+# your_app/views.py
+
+from django.views import View
+from django.http import JsonResponse
+from .decorators.alm_auth import alm_authentication_wrapper
+
+class MyView(View):
+    @alm_authentication_wrapper
+    def get(self, request, *args, **kwargs):
+        alm_client = kwargs.get('alm_client')
+        
+        # Define the domain and project
+        domain = 'your_domain'  # Replace with your actual domain
+        project = 'your_project'  # Replace with your actual project
+        
+        # Construct the endpoint URL
+        server_url = "https://{server-address}/qcbin"
+        test_endpoint = f"{server_url}/rest/domains/{domain}/projects/{project}/tests"
+        
+        try:
+            # Call the test endpoint using the alm_client
+            response = alm_client.get(test_endpoint)  # Adjust this method based on your client implementation
+            
+            # Assuming the response is JSON; you might need to handle it accordingly
+            return JsonResponse(response.json(), status=response.status_code)
+        except Exception as e:
+            return JsonResponse({'error': f'Error calling ALM test endpoint: {str(e)}'}, status=500)
+
+
