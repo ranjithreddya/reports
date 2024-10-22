@@ -289,3 +289,73 @@ class ALMAPIClient:
         """Make a GET request to the specified URL."""
         return self.session.get(url, auth=(self.client_id, self.client_secret))
 
+
+
+
+################
+# your_app/views.py
+
+from django.views import View
+from django.http import JsonResponse
+import requests
+
+class ALMAPIClient:
+    def __init__(self, client_id, client_secret):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.session = requests.Session()
+        self.base_url = "https://{server-address}/qcbin"  # Adjust this accordingly
+
+    def authenticate(self):
+        """Authenticate to the ALM API using the login API."""
+        login_url = f"{self.base_url}/authentication-point/authenticate"
+        
+        # Payload for authentication
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret
+        }
+
+        response = self.session.post(login_url, json=payload)
+
+        # Check if the authentication was successful
+        if response.status_code != 200:
+            raise Exception(f"Authentication failed: {response.status_code} - {response.text}")
+
+    def get_tests(self, domain, project):
+        """Retrieve tests from the ALM API."""
+        tests_endpoint = f"{self.base_url}/rest/domains/{domain}/projects/{project}/tests"
+        return self.session.get(tests_endpoint)
+
+class TestsView(View):
+    def get(self, request, *args, **kwargs):
+        # Retrieve client ID and secret from request headers
+        client_id = request.META.get('HTTP_CLIENT_ID')
+        client_secret = request.META.get('HTTP_CLIENT_SECRET')
+
+        if not client_id or not client_secret:
+            return JsonResponse({'error': 'Client ID and Client Secret are required.'}, status=400)
+
+        # Initialize the ALM API client
+        alm_client = ALMAPIClient(client_id, client_secret)
+
+        # Authenticate
+        try:
+            alm_client.authenticate()
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+        # Define the domain and project
+        domain = 'your_domain'  # Replace with your actual domain
+        project = 'your_project'  # Replace with your actual project
+        
+        # Call the tests endpoint
+        try:
+            response = alm_client.get_tests(domain, project)
+
+            # Return the response from ALM
+            return JsonResponse(response.json(), status=response.status_code)
+        except Exception as e:
+            return JsonResponse({'error': f'Error retrieving tests: {str(e)}'}, status=500)
+
+
