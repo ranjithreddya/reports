@@ -250,3 +250,22 @@ class MyView(View):
             return JsonResponse({'error': f'Error calling ALM test endpoint: {str(e)}'}, status=500)
 
 
+
+
+# your_app/services/alm_api.py
+
+import requests
+
+class ALMAPIClient:
+    def __init__(self, client_id, client_secret):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.session = requests.Session()
+        
+    def authenticate(self):
+        # Add your authentication logic here
+        pass
+
+    def get(self, url):
+        # Use the session to make a GET request
+        return self.session.get(url, auth=(self.client_id, self.client_secret))
