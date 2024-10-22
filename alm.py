@@ -253,6 +253,7 @@ class MyView(View):
 
 
 # your_app/services/alm_api.py
+# your_app/services/alm_api.py
 
 import requests
 
@@ -261,11 +262,30 @@ class ALMAPIClient:
         self.client_id = client_id
         self.client_secret = client_secret
         self.session = requests.Session()
-        
+        self.base_url = "https://{server-address}/qcbin"  # Adjust this accordingly
+
     def authenticate(self):
-        # Add your authentication logic here
-        pass
+        """Authenticate to the ALM API."""
+        auth_url = f"{self.base_url}/authentication-point/authenticate"
+        credentials = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret
+        }
+
+        try:
+            # Perform the POST request to authenticate
+            response = self.session.post(auth_url, json=credentials)
+
+            # Check if the authentication was successful
+            if response.status_code == 200:
+                print("Authentication successful.")
+            else:
+                raise Exception(f"Authentication failed: {response.status_code} - {response.text}")
+
+        except Exception as e:
+            raise Exception(f"Error during authentication: {str(e)}")
 
     def get(self, url):
-        # Use the session to make a GET request
+        """Make a GET request to the specified URL."""
         return self.session.get(url, auth=(self.client_id, self.client_secret))
+
