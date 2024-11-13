@@ -21,3 +21,37 @@ ANS:  I took responsibility for my tasks, ensured timely delivery. I also suppor
 
 6) Propel Change give me one point related it industrie as a team member 
 I helped drive change by suggesting new ideas and being flexible in adapting to changes as team.
+
+
+
+##############################
+1)Collaboration give me some points related it industrie as a python developer in team
+
+1. Worked closely with teammates to ensure we were all tasks aligned and helped each other solve coding challenges.
+2. Participated in reviews and testing to catch issues early and to develop new solutions.
+3. Helped team members with difficult tasks, sharing solutions and offering guidance when needed.
+4. Collaborated with the team to choose the right tools and libraries, making our development process smoother.
+
+Development Goals
+
+
+Casper Application Development:
+1) Understand and implement asynchronous views and tasks in Django using Python’s celery for async support to build more efficient, high-performance applications.
+2) Implemented caching strategies in Django to improve application performance and reduce load times.
+3) Build Django middleware by creating custom middleware to handle cross-cutting concerns like logging, security, or request&response processing, improving app performance and maintainability.
+4) Implemented Ingestion Testing and End of the DAY(TAR and ITR) Reports functionality in casper to help user to review their EOD data.
+5) Developed Ingestion and simulator and report testing fetures and enhancements daily and montly basis.
+
+
+Business goals
+I aim to create efficient solutions that streamline workflows, improve system performance, and help the team meet business objectives.
+1)ESMA, ASIC, MAS and UKDERV - Ingestion: Automates data ingestion with client response to help validate testing of data quality
+2)ESMA, ASIC, MAS and UKDERV - Reports(ITR and TAR): Automated Eod the day reports for clients review their eod reports and data quality.
+3)RSF Frame work: Implemennted muliptule UDF's in snowflake for Data processing. 
+
+
+
+Suproted multiple pepole to developing skills by mentoring other developers, sharing knowledge with in the team, and taking on more responsibilities in project planning and execution.
+Have enrolled in training for Snowflake to deepen my knowledge of cloud data platforms and enhance my ability to work with large-scale data processing and analytics.
+
+
