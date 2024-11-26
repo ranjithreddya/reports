@@ -103,23 +103,43 @@ final_output = [
     {
         # Dynamically map the user-<number> fields to the required keys
         "JIRA": next(
-            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-07" and field.get("Values")),
+            (
+                field["Values"][0].get("value", None)
+                for field in entity["Fields"]
+                if field.get("Name") == "user-07" and isinstance(field.get("Values"), list) and field["Values"]
+            ),
             None
         ),
         "TCID": next(
-            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "id" and field.get("Values")),
+            (
+                field["Values"][0].get("value", None)
+                for field in entity["Fields"]
+                if field.get("Name") == "id" and isinstance(field.get("Values"), list) and field["Values"]
+            ),
             None
         ),
         "Component": next(
-            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-02" and field.get("Values")),
+            (
+                field["Values"][0].get("value", None)
+                for field in entity["Fields"]
+                if field.get("Name") == "user-02" and isinstance(field.get("Values"), list) and field["Values"]
+            ),
             None
         ),
         "Apllication": next(
-            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-10" and field.get("Values")),
+            (
+                field["Values"][0].get("value", None)
+                for field in entity["Fields"]
+                if field.get("Name") == "user-10" and isinstance(field.get("Values"), list) and field["Values"]
+            ),
             None
         ),
         "Release": next(
-            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-04" and field.get("Values")),
+            (
+                field["Values"][0].get("value", None)
+                for field in entity["Fields"]
+                if field.get("Name") == "user-04" and isinstance(field.get("Values"), list) and field["Values"]
+            ),
             None
         )
     }
