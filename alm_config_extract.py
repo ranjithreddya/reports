@@ -61,3 +61,41 @@ for entity in root.findall('Entity'):
 # Convert to JSON
 json_data = json.dumps(entities, indent=2)
 print(json_data)
+
+######################################################
+
+final_output = []
+
+# Iterate over each entity in the data["entities"]
+for entity in data["entities"]:
+    # Create a dictionary to store the values for each entity
+    entity_dict = {
+        "JIRA": None,
+        "TCID": None,
+        "Component": None,
+        "Apllication": None,
+        "Release": None
+    }
+    
+    # Iterate over each field in the entity's "Fields"
+    for field in entity["Fields"]:
+        field_name = field["Name"]
+        field_value = field["Values"][0]["value"] if field["Values"] else None
+        
+        # Map the specific fields to the required keys
+        if field_name == "user-07":
+            entity_dict["JIRA"] = field_value
+        elif field_name == "id":
+            entity_dict["TCID"] = field_value
+        elif field_name == "user-02":
+            entity_dict["Component"] = field_value
+        elif field_name == "user-10":
+            entity_dict["Apllication"] = field_value
+        elif field_name == "user-04":
+            entity_dict["Release"] = field_value
+    
+    # Append the created dictionary for this entity to the final_output
+    final_output.append(entity_dict)
+
+
+
