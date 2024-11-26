@@ -99,53 +99,51 @@ for entity in data["entities"]:
 
 ################################################################
 
-final_output = [
-    {
-        # Dynamically map the user-<number> fields to the required keys
-        "JIRA": next(
-            (
-                field["Values"][0].get("value", None)
-                for field in entity["Fields"]
-                if field.get("Name") == "user-07" and isinstance(field.get("Values"), list) and field["Values"]
-            ),
-            None
-        ),
-        "TCID": next(
-            (
-                field["Values"][0].get("value", None)
-                for field in entity["Fields"]
-                if field.get("Name") == "id" and isinstance(field.get("Values"), list) and field["Values"]
-            ),
-            None
-        ),
-        "Component": next(
-            (
-                field["Values"][0].get("value", None)
-                for field in entity["Fields"]
-                if field.get("Name") == "user-02" and isinstance(field.get("Values"), list) and field["Values"]
-            ),
-            None
-        ),
-        "Apllication": next(
-            (
-                field["Values"][0].get("value", None)
-                for field in entity["Fields"]
-                if field.get("Name") == "user-10" and isinstance(field.get("Values"), list) and field["Values"]
-            ),
-            None
-        ),
-        "Release": next(
-            (
-                field["Values"][0].get("value", None)
-                for field in entity["Fields"]
-                if field.get("Name") == "user-04" and isinstance(field.get("Values"), list) and field["Values"]
-            ),
-            None
-        )
-    }
-    for entity in data["entities"]
-]
 
+try:
+    # Input data with multiple entities
+    data = {
+        "entities": [
+            {
+                "Fields": [
+                    {"Name": "user-07", "Values": [{"value": "JFSA-07"}]},
+                    {"Name": "id", "Values": [{"value": "67462"}]},
+                    {"Name": "user-10", "Values": [{}]},
+                    {"Name": "user-04", "Values": [{"value": "JFSA-04"}]},
+                    {"Name": "user-02", "Values": [{"value": "JFSA-02"}]}
+                ]
+            },
+            {
+                "Fields": [
+                    {"Name": "user-07", "Values": [{"value": "07"}]},
+                    {"Name": "id", "Values": [{"value": "67461"}]},
+                    {"Name": "user-10", "Values": [{"value": "10"}]},
+                    {"Name": "user-04", "Values": [{"value": "04"}]},
+                    {"Name": "user-02", "Values": [{"value": "02"}]}
+                ]
+            }
+        ]
+    }
+
+    # Process entities and dynamically map the fields
+    final_output = [
+        {
+            # Dynamically map the user-<number> fields to the required keys
+            "JIRA": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-07"), None),
+            "TCID": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "id"), None),
+            "Component": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-02"), None),
+            "Apllication": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-10"), None),
+            "Release": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-04"), None)
+        }
+        for entity in data["entities"]
+    ]
+
+    # Print the final output
+    print(final_output)
+
+except Exception as e:
+    import traceback
+    traceback.print_exc()
 
 
 
