@@ -97,5 +97,37 @@ for entity in data["entities"]:
     # Append the created dictionary for this entity to the final_output
     final_output.append(entity_dict)
 
+################################################################
+
+final_output = [
+    {
+        # Dynamically map the user-<number> fields to the required keys
+        "JIRA": next(
+            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-07" and field.get("Values")),
+            None
+        ),
+        "TCID": next(
+            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "id" and field.get("Values")),
+            None
+        ),
+        "Component": next(
+            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-02" and field.get("Values")),
+            None
+        ),
+        "Apllication": next(
+            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-10" and field.get("Values")),
+            None
+        ),
+        "Release": next(
+            (field["Values"][0].get("value", None) for field in entity["Fields"] if field["Name"] == "user-04" and field.get("Values")),
+            None
+        )
+    }
+    for entity in data["entities"]
+]
+
+
+
+
 
 
