@@ -146,6 +146,20 @@ except Exception as e:
     traceback.print_exc()
 
 
+######################################################################################
+final_output = [
+    {
+        "JIRA": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-07" and field.get("Values")), None),
+        "TCID": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "id" and field.get("Values")), None),
+        "Component": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-02" and field.get("Values")), None),
+        "Application": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-10" and field.get("Values")), None),
+        "Release": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-04" and field.get("Values")), None)
+    }
+    for entity in data["entities"]
+]
+
+##########################################################################
+
 
 
 
