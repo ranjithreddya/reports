@@ -161,5 +161,58 @@ final_output = [
 ##########################################################################
 
 
+import json
+from django.db import transaction
+from .models import ALM_TEST_DATA  # Adjust this import according to your project structure
+
+# Load the JSON file
+try:
+    with open('file.json', 'r') as file:
+        file_data = file.read()
+
+    data = json.loads(file_data)
+
+    # Process the data and map fields dynamically
+    final_output = [
+        {
+            "JIRA": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-07" and field.get("Values")), None),
+            "TCID": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "id" and field.get("Values")), None),
+            "Component": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-02" and field.get("Values")), None),
+            "Application": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-10" and field.get("Values")), None),
+            "Release": next((field["Values"][0].get("value") for field in entity["Fields"] if field["Name"] == "user-04" and field.get("Values")), None)
+        }
+        for entity in data["entities"]
+    ]
+
+    # Prepare instances for bulk_create
+    instances = [
+        ALM_TEST_DATA(
+            JIRA=item['JIRA'],
+            TCID=item['TCID'],
+            Component=item['Component'],
+            Application=item['Application'],
+            Release=item['Release']
+        )
+        for item in final_output
+    ]
+
+    # Function to insert data in batches to avoid exceeding DB limits
+    def bulk_insert_in_batches(instances, batch_size=10000):
+        for i in range(0, len(instances), batch_size):
+            batch = instances[i:i + batch_size]
+            try:
+                # Use Django's bulk_create to insert a batch of records
+                ALM_TEST_DATA.objects.bulk_create(batch)
+                print(f"Inserted {len(batch)} records.")
+            except Exception as e:
+                print(f"Error inserting batch {i // batch_size + 1}: {e}")
+                raise  # Reraise the exception if you want to handle it globally
+
+    # Run the bulk insert in batches
+    bulk_insert_in_batches(instances)
+
+except Exception as e:
+    import traceback
+    traceback.print_exc()
 
 
