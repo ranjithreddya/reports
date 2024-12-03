@@ -268,3 +268,133 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+
+
+####################################
+import json
+import requests
+from django.conf import settings
+import urllib
+
+class ALMAPIClient:
+    def __init__(self):
+        self.session = requests.Session()
+        self.client_id = settings.ALM_CLIENT_ID  
+        self.client_secret = settings.ALM_CLIENT_SECRET  
+        self.token_url = 'https://almdev.dtcc.com/qcbin/rest/oauth2/login'
+        self.alm_api_url = settings.ALM_API_URL
+        self.logout_url = 'https://almdev.dtcc.com/qcbin/authentication-point/logout'
+
+        # SSL certificate paths
+        self.ssl_cert_path = settings.SSL_CERT_PATH  
+        self.ssl_cert_key_path = settings.SSL_CERT_KEY_PATH
+
+        # Track progress
+        self.output_file = 'alm_test_cases.json'
+        self.progress_file = 'progress.json'
+
+    def login(self):
+        """Authenticate and get the access token."""
+        payload = {
+            'grant_type': 'client_credentials',
+            'client_id': self.client_id,
+            'client_secret': self.client_secret
+        }
+
+        cert = (self.ssl_cert_path, self.ssl_cert_key_path) if self.ssl_cert_key_path else self.ssl_cert_path
+        try:
+            response = self.session.post(self.token_url, data=payload, cert=cert, verify=self.ssl_cert_path)
+            if response.status_code == 200:
+                print("Login successful!")
+                return True
+            else:
+                print(f"Failed to authenticate: {response.status_code}")
+                return False
+        except requests.exceptions.SSLError as e:
+            print(f"SSL Error: {e}")
+            return False
+
+    def fetch_test_cases(self):
+        """Fetch test cases with pagination."""
+        start = self.load_progress()
+        page_size = 2000
+
+        while True:
+            final_url = f"{self.alm_api_url}?page-size={page_size}&start-index={start}"
+            cert = (self.ssl_cert_path, self.ssl_cert_key_path) if self.ssl_cert_key_path else self.ssl_cert_path
+
+            try:
+                response = requests.get(final_url, cert=cert, verify=self.ssl_cert_path)
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'entities' in data:
+                        records = data['entities']
+                        self.save_to_file(records)
+
+                        if len(records) < page_size:
+                            print("All test cases fetched.")
+                            break
+                        else:
+                            start += page_size
+                            self.save_progress(start)
+                    else:
+                        print("No entities found.")
+                        break
+                elif response.status_code == 401:  # Re-authenticate if token expired
+                    print("Session expired. Re-authenticating...")
+                    if not self.login():
+                        break
+                else:
+                    print(f"Request failed with status code {response.status_code}")
+                    break
+            except requests.exceptions.RequestException as e:
+                print(f"Error: {e}")
+                break
+
+    def logout(self):
+        """Logout from the API."""
+        cert = (self.ssl_cert_path, self.ssl_cert_key_path) if self.ssl_cert_key_path else self.ssl_cert_path
+        response = self.session.delete(self.logout_url, cert=cert, verify=self.ssl_cert_path)
+        if response.status_code == 200:
+            print("Logged out successfully.")
+        else:
+            print(f"Failed to log out: {response.status_code}")
+        self.session.close()
+
+    def save_to_file(self, records):
+        """Append records to the output file."""
+        try:
+            with open(self.output_file, 'r+') as file:
+                data = json.load(file)
+                data['entities'].extend(records)
+                file.seek(0)
+                json.dump(data, file, indent=4)
+        except FileNotFoundError:
+            with open(self.output_file, 'w') as file:
+                json.dump({"entities": records}, file, indent=4)
+
+    def save_progress(self, start_index):
+        """Save the current progress."""
+        with open(self.progress_file, 'w') as file:
+            json.dump({'start_index': start_index}, file)
+
+    def load_progress(self):
+        """Load the last saved progress."""
+        try:
+            with open(self.progress_file, 'r') as file:
+                progress = json.load(file)
+                return progress.get('start_index', 1)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return 1  # Default to start from 1 if no progress file exists
+
+def main():
+    alm_client = ALMAPIClient()
+    if alm_client.login():
+        alm_client.fetch_test_cases()
+        alm_client.logout()
+
+if __name__ == "__main__":
+    main()
+
+
