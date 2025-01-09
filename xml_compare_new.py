@@ -358,3 +358,52 @@ processed_df.to_csv('output_with_xml.csv', index=False)
 # Show the resulting DataFrame to verify
 print(processed_df)
 
+
+
+
+import csv
+import requests
+
+# Step 1: Define the CSV file and columns to exclude (based on column names)
+csv_file = 'sample.csv'  # Replace with your CSV file path
+columns_to_exclude = ['column_1', 'column_3']  # Names of the columns to exclude
+
+# Step 2: Read the CSV file, exclude the header and unwanted columns
+csv_content = []
+header = []
+
+with open(csv_file, 'r') as file:
+    csv_reader = csv.reader(file)
+    
+    # Step 3: Read the header
+    header = next(csv_reader)  # Read the header (first row)
+    
+    # Step 4: Filter the columns based on column names
+    columns_to_keep = [col for col in header if col not in columns_to_exclude]
+    
+    # Step 5: Process each row and keep only the columns that are in `columns_to_keep`
+    for row in csv_reader:
+        filtered_row = [value for i, value in enumerate(row) if header[i] in columns_to_keep]
+        csv_content.append(','.join(filtered_row))  # Rebuild the row as a CSV string
+
+# Step 6: Combine all rows into a single CSV string (excluding unwanted columns)
+csv_data = '\n'.join(csv_content)  # Join all rows with newline to create the final CSV data
+
+# Step 7: Define the API endpoint (replace with your actual URL)
+url = 'https://your-api-endpoint.com'  # Replace with your API endpoint
+
+# Step 8: Send the raw CSV content in the POST request
+headers = {
+    'Content-Type': 'application/csv',  # Or 'text/csv', depending on your API's requirement
+}
+
+# Step 9: Send the POST request with the filtered CSV content
+response = requests.post(url, data=csv_data, headers=headers)
+
+# Step 10: Check the response
+if response.status_code == 200:
+    print(f"Success: {response.text}")
+else:
+    print(f"Failed: {response.status_code}, {response.text}")
+
+
