@@ -148,3 +148,41 @@ print(final_result)
 final_result = final_result.sort_values(by=["row_uniq_identifier", "test", "field_nm"]).reset_index(drop=True)
 print(final_result)
 
+import pandas as pd
+
+data = [
+    {"row_uniq_identifier": "1", "test": "test1", "field_nm": "d5", "expect_val": "jbjhsa", "actual_val": "sk", "compare_result": "FAIL", "date": "2025-01-01"},
+    {"row_uniq_identifier": "1", "test": "test1", "field_nm": "d2", "expect_val": "sl", "actual_val": "dd", "compare_result": "FAIL", "date": "2025-01-01"},
+    {"row_uniq_identifier": "3", "test": "test3", "field_nm": "d3", "expect_val": "ow", "actual_val": "sd", "compare_result": "FAIL", "date": "2025-01-02"},
+    {"row_uniq_identifier": "4", "test": "test4", "field_nm": "d6", "expect_val": "snnj", "actual_val": "fjf", "compare_result": "FAIL", "date": "2025-01-03"},
+    {"row_uniq_identifier": "5", "test": "test5", "field_nm": "d1", "expect_val": "24", "actual_val": "27", "compare_result": "FAIL", "date": "2025-01-04"},
+    {"row_uniq_identifier": "5", "test": "test5", "field_nm": "modi_txid", "expect_val": "MODI_NK040824243049TC99999SEUREFIT51547XCOMNEGR95", "actual_val": "MODI_NK040824243049TC99999SEUREFIT51547XCOMNEGR95", "compare_result": "PASS", "date": "2025-01-04"},
+    {"row_uniq_identifier": "6", "test": "test6", "field_nm": "d4", "expect_val": "cdj", "actual_val": "ddf", "compare_result": "PASS", "date": "2025-01-05"},
+    {"row_uniq_identifier": "6", "test": "test6", "field_nm": "d4", "expect_val": "cdj", "actual_val": "ddf", "compare_result": "PASS", "date": "2025-01-05"}
+]
+
+
+df = pd.DataFrame(data)
+grouped = df.groupby(['row_uniq_identifier'])['compare_result'].agg(lambda x: x.nunique())
+
+summary = []
+for idx, count in grouped.items():
+    if count == 1:
+        result = df[(df['row_uniq_identifier'] == idx)]['compare_result'].iloc[0]
+        date = df[(df['row_uniq_identifier'] == idx)]['date'].iloc[0]
+        compare_result = f"ALL-{result.upper()}"
+        summary_entry = {"row_uniq_identifier": str(idx), "field_nm": "all", "compare_result": compare_result, "date": date}
+
+        for column in df.columns:
+            if column not in ["row_uniq_identifier", "compare_result", "date"]:
+                summary_entry[column] = ""
+        summary.append(summary_entry)
+
+summarized_pairs = grouped[grouped == 1].index.tolist()
+df_filtered = df[~df['row_uniq_identifier'].isin(summarized_pairs)]
+summary_df = pd.DataFrame(summary)
+final_result = pd.concat([summary_df, df_filtered], ignore_index=True)
+final_result = final_result.sort_values(by=["row_uniq_identifier", "field_nm"]).reset_index(drop=True)
+
+print(final_result)
+
