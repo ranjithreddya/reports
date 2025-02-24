@@ -152,21 +152,22 @@ def execute_merge():
         # Create a cursor object
         cur = conn.cursor()
 
-        # Get the list of columns for the main_table and temp_table
+        # Get the list of columns for the temp_table (assuming temp_table has the same columns as main_table)
         cur.execute("""
             SELECT column_name
             FROM information_schema.columns
-            WHERE table_name = 'MAIN_TABLE' AND table_schema = 'YOUR_SCHEMA'
+            WHERE table_name = 'TEMP_TABLE' AND table_schema = 'YOUR_SCHEMA'
             ORDER BY ordinal_position;
         """)
-        
-        # Fetch column names from the main table
-        main_table_columns = [row[0] for row in cur.fetchall()]
 
+        # Fetch column names from the temp_table
+        temp_table_columns = [row[0] for row in cur.fetchall()]
+
+        # Ensure both tables have columns that need to be handled in the merge
         # Build the column list for the INSERT and UPDATE statements
-        column_list = ", ".join(main_table_columns)
-        set_clause = ", ".join([f"target.{col} = source.{col}" for col in main_table_columns])
-        values_clause = ", ".join([f"source.{col}" for col in main_table_columns])
+        column_list = ", ".join(temp_table_columns)
+        set_clause = ", ".join([f"target.{col} = source.{col}" for col in temp_table_columns])
+        values_clause = ", ".join([f"source.{col}" for col in temp_table_columns])
 
         # Build the dynamic MERGE statement
         merge_sql = f"""
@@ -197,5 +198,3 @@ def execute_merge():
 
 # Call the function to execute the merge
 execute_merge()
-
-
