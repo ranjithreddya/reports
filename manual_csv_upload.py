@@ -198,3 +198,66 @@ def execute_merge():
 
 # Call the function to execute the merge
 execute_merge()
+
+
+
+import pandas as pd
+
+# Load CSV
+df = pd.read_csv(csv_file)
+
+# Add extra columns
+df['file'] = '/apps/dpo/text.csv'
+df['type'] = 'csv'
+
+# Reorder columns to move 'file' and 'type' to the front
+columns = ['file', 'type'] + [col for col in df.columns if col not in ['file', 'type']]
+df = df[columns]
+
+# Print the DataFrame for reference
+print(df)
+
+# Now, we will generate a Snowflake SQL query for CREATE and INSERT at the same time
+table_name = 'temp_csv_data'
+
+# Step 1: Dynamically create the CREATE TABLE statement based on the DataFrame columns and data types
+create_table_sql = f"CREATE OR REPLACE TEMPORARY TABLE {table_name} (\n"
+
+# Infer data types and add column definitions to the CREATE statement
+for col in df.columns:
+    # Check if the column contains non-string data and use a more specific type
+    if df[col].dtype == 'int64':
+        data_type = 'INT'
+    elif df[col].dtype == 'float64':
+        data_type = 'FLOAT'
+    elif df[col].dtype == 'datetime64[ns]':
+        data_type = 'DATE'
+    else:
+        data_type = 'STRING'
+    
+    # Handle columns with spaces or hyphens
+    if ' ' in col or '-' in col:
+        create_table_sql += f'    "{col}" {data_type},\n'
+    else:
+        create_table_sql += f'    {col} {data_type},\n'
+
+# Remove the trailing comma and newline from the last column definition
+create_table_sql = create_table_sql.rstrip(',\n') + "\n);"
+
+# Step 2: Create the INSERT INTO statement dynamically
+columns = ', '.join([f'"{col}"' if ' ' in col or '-' in col else col for col in df.columns])
+insert_sql = f"INSERT INTO {table_name} ({columns})\nSELECT "
+
+select_values = []
+for _, row in df.iterrows():
+    # Create dynamic value list for each row, properly quoted
+    values = [f"'{row[col]}'" if pd.notnull(row[col]) else 'NULL' for col in df.columns]
+    select_values.append(f"({', '.join(values)})")
+
+insert_sql += ",\n".join(select_values) + ";"
+
+# Execute SQL statements (assuming you have a cursor object for database interaction)
+cursor.execute(create_table_sql)
+cursor.execute(insert_sql)
+
+
