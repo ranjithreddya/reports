@@ -261,3 +261,21 @@ cursor.execute(create_table_sql)
 cursor.execute(insert_sql)
 
 
+merge_sql = f"""
+    MERGE INTO main_table AS target
+    USING temp_table AS source
+    ON target.id = source.id  -- Matching condition
+    WHEN MATCHED THEN
+        UPDATE SET 
+            {', '.join([f"target.{col} = CAST(source.{col} AS {target_type})" for col, target_type in zip(column_list.split(','), target_column_types)])
+        }
+    WHEN NOT MATCHED THEN
+        INSERT ({column_list}) 
+        VALUES (
+            {', '.join([f"CAST(source.{col} AS {target_type})" for col, target_type in zip(column_list.split(','), target_column_types)])}
+        );
+"""
+
+
+
+
