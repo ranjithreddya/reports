@@ -42,3 +42,34 @@ create_table_sql += f"FROM VALUES\n" + ",\n".join(select_values) + ";"
 
 # Print the generated SQL query
 print(create_table_sql)
+
+CREATE OR REPLACE TEMPORARY TABLE temp_csv_data (
+    file STRING,
+    type STRING,
+    col1 STRING,
+    col2 STRING,
+    col3 STRING
+);
+
+INSERT INTO temp_csv_data (file, type, col1, col2, col3)
+SELECT
+    '/apps/dpo/text.csv' AS file,
+    'csv' AS type,
+    'test1' AS col1,
+    'set1' AS col2,
+    'ts1' AS col3
+UNION ALL
+SELECT
+    '/apps/dpo/text.csv' AS file,
+    'csv' AS type,
+    'test2' AS col1,
+    'set2' AS col2,
+    'ts2' AS col3
+UNION ALL
+SELECT
+    '/apps/dpo/text.csv' AS file,
+    'csv' AS type,
+    'test3' AS col1,
+    'set3' AS col2,
+    'ts3' AS col3;
+
