@@ -134,3 +134,68 @@ full_sql = create_table_sql + "\n" + insert_sql
 print(full_sql)
 
 
+import snowflake.connector
+
+# Establish connection to Snowflake
+conn = snowflake.connector.connect(
+    user='<your_user>',
+    password='<your_password>',
+    account='<your_account>',
+    warehouse='<your_warehouse>',
+    database='<your_database>',
+    schema='<your_schema>'
+)
+
+# Function to generate and execute the dynamic SQL
+def execute_merge():
+    try:
+        # Create a cursor object
+        cur = conn.cursor()
+
+        # Get the list of columns for the main_table and temp_table
+        cur.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'MAIN_TABLE' AND table_schema = 'YOUR_SCHEMA'
+            ORDER BY ordinal_position;
+        """)
+        
+        # Fetch column names from the main table
+        main_table_columns = [row[0] for row in cur.fetchall()]
+
+        # Build the column list for the INSERT and UPDATE statements
+        column_list = ", ".join(main_table_columns)
+        set_clause = ", ".join([f"target.{col} = source.{col}" for col in main_table_columns])
+        values_clause = ", ".join([f"source.{col}" for col in main_table_columns])
+
+        # Build the dynamic MERGE statement
+        merge_sql = f"""
+            MERGE INTO main_table AS target
+            USING temp_table AS source
+            ON target.id = source.id  -- Matching condition
+            WHEN MATCHED THEN
+                UPDATE SET {set_clause}
+            WHEN NOT MATCHED THEN
+                INSERT ({column_list}) 
+                VALUES ({values_clause});
+        """
+
+        # Print the dynamic SQL for debugging purposes
+        print("Generated MERGE SQL:\n", merge_sql)
+
+        # Execute the MERGE statement
+        cur.execute(merge_sql)
+        
+        print("MERGE statement executed successfully!")
+
+    except Exception as e:
+        print(f"Error executing the MERGE statement: {e}")
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+# Call the function to execute the merge
+execute_merge()
+
+
