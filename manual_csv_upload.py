@@ -73,3 +73,64 @@ SELECT
     'set3' AS col2,
     'ts3' AS col3;
 
+
+
+    import pandas as pd
+from io import StringIO
+
+# Simulate the CSV input as a string
+csv_data = """col1,col2,col3
+test1,set1,ts1
+test2,set2,ts2
+test3,set3,ts3"""
+
+# Use StringIO to treat the string as a file-like object
+csv_file = StringIO(csv_data)
+
+# Read the CSV from the string
+df = pd.read_csv(csv_file)
+
+# Add the extra columns
+df['file'] = '/apps/dpo/text.csv'
+df['type'] = 'csv'
+
+# Reorder columns to move 'file' and 'type' to the front
+columns = ['file', 'type'] + [col for col in df.columns if col not in ['file', 'type']]
+df = df[columns]
+
+# Print the DataFrame for reference
+print(df)
+
+# Now, we will generate a Snowflake SQL query for CREATE and INSERT at the same time
+table_name = 'temp_csv_data'
+
+# Step 1: Create the CREATE TABLE statement dynamically based on the DataFrame columns
+create_table_sql = f"CREATE OR REPLACE TEMPORARY TABLE {table_name} (\n"
+
+# Dynamically create the column definitions for the CREATE statement
+for col in df.columns:
+    create_table_sql += f"    {col} STRING,\n"
+
+# Remove the trailing comma and newline from the last column definition
+create_table_sql = create_table_sql.rstrip(',\n') + "\n);"
+
+# Step 2: Dynamically create the INSERT INTO statement with SELECT values
+insert_sql = f"INSERT INTO {table_name} ({', '.join(df.columns)})\nSELECT "
+
+# Dynamically add the row values as part of the SELECT statement
+select_values = []
+for _, row in df.iterrows():
+    # Create dynamic value list for each row, properly quoted
+    values = [f"'{row[col]}'" for col in df.columns]  # Escape each value with single quotes
+    select_values.append(f"({', '.join(values)})")
+
+# Combine the SELECT values into a single SQL statement
+insert_sql += ",\n".join(select_values) + ";"
+
+# Combine the CREATE and INSERT SQL statements
+full_sql = create_table_sql + "\n" + insert_sql
+
+# Print the generated SQL query
+print(full_sql)
+
+
