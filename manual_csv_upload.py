@@ -277,5 +277,73 @@ merge_sql = f"""
 """
 
 
+##################################################
+
+import pandas as pd
+
+# Read the CSV into a DataFrame
+df = pd.read_csv(csv_file)
+
+# Add the 'file' and 'type' columns
+df['file'] = '/apps/dpo/text.csv'
+df['type'] = 'csv'
+
+# Reorder the columns to have 'file' and 'type' at the beginning
+columns = ['file', 'type'] + [col for col in df.columns if col not in ['file', 'type']]
+df = df[columns]
+
+# Initialize the CREATE TABLE SQL statement
+create_table_sql = f"CREATE OR REPLACE TEMPORARY TABLE temp_csv_data (\n"
+
+# Function to detect appropriate data types
+def detect_data_type(col_data):
+    # Try to parse as date first
+    try:
+        pd.to_datetime(col_data, errors='raise')  # Try converting to datetime
+        return 'TIMESTAMP'  # Use TIMESTAMP for date-time columns
+    except Exception:
+        pass
+
+    # Check if the column can be cast to numeric
+    if pd.to_numeric(col_data, errors='coerce').notna().all():
+        if col_data.dtype == 'float64':
+            return 'FLOAT'
+        return 'INT'
+
+    # Default to STRING if not a date or numeric type
+    return 'STRING'
+
+# Loop through the columns of the DataFrame and assign appropriate data types
+for col in df.columns:
+    # Detect the data type dynamically
+    data_type = detect_data_type(df[col])
+
+    # Add column to the CREATE TABLE SQL, ensuring columns with spaces or dashes are quoted
+    if ' ' in col or '-' in col:
+        create_table_sql += f'    "{col}" {data_type},\n'
+    else:
+        create_table_sql += f'    {col} {data_type},\n'
+
+# Remove the trailing comma and add closing parentheses
+create_table_sql = create_table_sql.rstrip(',\n') + "\n);"
+
+# Now create the INSERT INTO statement
+columns = ', '.join([f'"{col}"' if ' ' in col or '-' in col else col for col in df.columns])
+insert_sql = f"INSERT INTO {table_name} ({columns})\nSELECT "
+
+# Prepare the VALUES part of the INSERT statement
+select_values = []
+for _, row in df.iterrows():
+    # Create dynamic value list for each row, properly quoted
+    values = [f"'{row[col]}'" if pd.notnull(row[col]) else 'NULL' for col in df.columns]
+    select_values.append(f"({', '.join(values)})")
+
+# Append the values to the insert SQL
+insert_sql += ",\n".join(select_values) + ";"
+
+# Execute the SQL to create the table and insert the data
+cursor.execute(create_table_sql)
+cursor.execute(insert_sql)
+
 
 
