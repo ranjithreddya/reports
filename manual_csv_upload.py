@@ -421,4 +421,78 @@ cursor.execute(insert_sql)
 
 
 
+import pandas as pd
+
+# Read the CSV into a DataFrame
+df = pd.read_csv(csv_file)
+
+# Add the 'file' and 'type' columns
+df['file'] = '/apps/dpo/text.csv'
+df['type'] = 'csv'
+
+# Reorder the columns to have 'file' and 'type' at the beginning
+columns = ['file', 'type'] + [col for col in df.columns if col not in ['file', 'type']]
+df = df[columns]
+
+# Initialize the CREATE TABLE SQL statement
+create_table_sql = f"CREATE OR REPLACE TEMPORARY TABLE temp_csv_data (\n"
+
+# Function to detect appropriate data types
+def detect_data_type(col_name, col_data):
+    # Check if the column can be interpreted as a date
+    try:
+        pd.to_datetime(col_data, errors='raise')  # Try converting to datetime
+        return "TIMESTAMP_NTZ(9)"  # Use TIMESTAMP for date-time columns
+    except Exception:
+        pass
+
+    # Check if the column can be cast to numeric (either integer or float)
+    numeric_data = pd.to_numeric(col_data, errors='coerce')
+    if numeric_data.notna().all():
+        # If it's float data, we assign FLOAT; otherwise, NUMBER
+        return "FLOAT" if col_data.dtype == 'float64' else "NUMBER(38,0)"
+    
+    # Check for boolean columns (only two unique values)
+    # First, handle cases where boolean values are represented as strings ("True", "False")
+    if col_data.dropna().isin(['True', 'False']).all():
+        return "BOOLEAN"
+    
+    # Check for actual boolean columns (True, False)
+    if col_data.dropna().isin([True, False]).all():
+        return "BOOLEAN"
+
+    # Default to VARCHAR(16777216) if not a date, numeric, or boolean
+    return "VARCHAR(16777216)"
+
+# Loop through the columns of the DataFrame and assign appropriate data types
+for col in df.columns:
+    # Detect the data type dynamically based on the column name and values
+    data_type = detect_data_type(col, df[col])
+
+    # Add column to the CREATE TABLE SQL, ensuring columns with spaces or dashes are quoted
+    if ' ' in col or '-' in col:
+        create_table_sql += f'    "{col}" {data_type},\n'
+    else:
+        create_table_sql += f'    {col} {data_type},\n'
+
+# Remove the trailing comma and add closing parentheses
+create_table_sql = create_table_sql.rstrip(',\n') + "\n);"
+
+# Now create the INSERT INTO statement
+columns = ', '.join([f'"{col}"' if ' ' in col or '-' in col else col for col in df.columns])
+insert_sql = f"INSERT INTO {table_name} ({columns})\nSELECT "
+
+# Prepare the VALUES part of the INSERT statement
+select_values = []
+for _, row in df.iterrows():
+    # Create dynamic value list for each row, properly quoted
+    values = [f"'{row[col]}'" if pd.notnull(row[col]) else 'NULL' for col in df.columns]
+    select_values.append(f"({', '.join(values)})")
+
+# Append the values to the insert SQL
+insert_sql += ",\n".join(select_values) + ";"
+
+# Execute the SQL to create the table and insert the data
+cursor.execute(create_table_sql)
+cursor.execute(insert_sql)
 
