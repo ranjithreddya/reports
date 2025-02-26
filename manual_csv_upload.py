@@ -496,3 +496,54 @@ insert_sql += ",\n".join(select_values) + ";"
 cursor.execute(create_table_sql)
 cursor.execute(insert_sql)
 
+
+##################################################################################
+
+import pandas as pd
+
+# Given list of dictionaries
+data = [
+    {'Column1': 'value1', 'Column2': 'value2', 'Column3': 'value3'},
+    {'Column1': 'value4', 'Column2': 'value5', 'Column3': 'value6'},
+    {'Column1': 'value7', 'Column2': 'value8', 'Column3': 'value9'}
+]
+
+# Convert list of dictionaries into a DataFrame
+df = pd.DataFrame(data)
+
+# Display the DataFrame
+print(df)
+
+
+import pandas as pd
+
+# Example data for multiple iterations
+data_sets = [
+    [
+        {'Column1': 'value1', 'Column2': 'value2', 'Column3': 'value3'},
+        {'Column1': 'value4', 'Column2': 'value5', 'Column3': 'value6'}
+    ],
+    [
+        {'Column1': 'value7', 'Column2': 'value8', 'Column3': 'value9'},
+        {'Column1': 'value10', 'Column2': 'value11', 'Column3': 'value12'}
+    ],
+    [
+        {'Column1': 'value13', 'Column2': 'value14', 'Column3': 'value15'},
+        {'Column1': 'value16', 'Column2': 'value17', 'Column3': 'value18'}
+    ]
+]
+
+# Create an empty list to collect DataFrames
+dfs = []
+
+# Loop through each data set, convert to DataFrame and append to list
+for data in data_sets:
+    df = pd.DataFrame(data)
+    dfs.append(df)
+
+# Concatenate all DataFrames in the list into one DataFrame
+result_df = pd.concat(dfs, ignore_index=True)
+
+# Display the resulting DataFrame
+print(result_df)
+
