@@ -200,3 +200,7 @@ files_to_copy = get_files_to_copy('origin/main')
 print("Files to copy:")
 for file in files_to_copy:
     print(file)
+
+
+
+The 12-character replacement, which includes the date and an incremental value (200000), is essential for guaranteeing that each request is assigned a unique identifier. This approach prevents duplication, which is crucial for tracking individual transactions or processes accurately, especially when multiple requests are made on the same day. Ensuring unique identifiers helps maintain data integrity and avoids potential conflicts or errors in the system.
