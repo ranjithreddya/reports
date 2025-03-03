@@ -161,3 +161,42 @@ def start_worker_if_not_running(branch):
 if __name__ == '__main__':
     # Start the Flask application on a custom port (e.g., 8080)
     app.run(debug=True, host="0.0.0.0", port=8080)
+
+
+
+
+
+
+
+
+
+
+import subprocess
+
+def get_files_to_copy(remote_branch='origin/main'):
+    """
+    Get the list of files that differ between the local repository and the remote repository.
+    This compares your current branch with the given remote branch.
+    """
+    try:
+        # Fetch the latest updates from the remote repository
+        subprocess.run(["git", "fetch", "origin"], check=True)
+
+        # Get the list of files that have changed between the local and remote branch
+        result = subprocess.check_output(
+            ["git", "diff", "--name-only", "HEAD", remote_branch], 
+            stderr=subprocess.STDOUT
+        ).decode('utf-8')
+
+        # Return the list of file names that have changed
+        return result.splitlines()
+    
+    except subprocess.CalledProcessError as e:
+        print(f"Error getting file list: {e.output.decode()}")
+        return []
+
+# Example usage
+files_to_copy = get_files_to_copy('origin/main')
+print("Files to copy:")
+for file in files_to_copy:
+    print(file)
