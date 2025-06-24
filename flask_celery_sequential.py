@@ -220,3 +220,35 @@ redis-cli
 LRANGE queue:queue_asic 0 -1
 
 
+########################################
+What Does -n worker_asic@%h Actually Do?
+This sets a custom name for your worker:
+
+bash
+Copy
+Edit
+celery -A celery_config worker -Q queue_asic -n worker_asic@%h --concurrency=1
+Part	Meaning
+-n worker_asic@%h	Gives the worker a unique, readable name: e.g. worker_asic@hostname
+%h	Auto-expanded to the system hostname
+
+This name shows up in logs, monitoring tools (like Flower), and for debugging.
+It helps when running multiple workers.
+
+🔁 If You Omit It
+bash
+Copy
+Edit
+celery -A celery_config worker -Q queue_asic --concurrency=1
+This still works perfectly fine.
+
+Celery will auto-generate a name like:
+
+css
+Copy
+Edit
+celery@yourhostname
+Which can still run and process tasks from queue_asic.
+
+
+
