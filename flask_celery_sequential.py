@@ -216,3 +216,7 @@ def deploy():
 celery -A celery_config worker -Q queue_asic -n worker_asic@%h --concurrency=1
 
 
+redis-cli
+LRANGE queue:queue_asic 0 -1
+
+
